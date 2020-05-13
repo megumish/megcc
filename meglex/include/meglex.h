@@ -2,6 +2,7 @@
 #define __MEGLEX_HEADER__
 #include <stdio.h>
 #include "megsym.h"
+#include "dynamic_buffer.h"
 
 #define BUFFER_SIZE 0x1000
 
