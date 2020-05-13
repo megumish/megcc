@@ -10,6 +10,7 @@ typedef struct DynamicBuffer
     size_t forward;
     int is_file_end;
     FILE *file;
+    size_t buffer_max;
 } DynamicBuffer;
 
 int dynamic_buffer_init(DynamicBuffer *const dynamic_buffer, FILE *const file);

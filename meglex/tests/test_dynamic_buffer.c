@@ -6,6 +6,8 @@
 int a_char();
 int two_chars();
 int too_many_chars();
+int literal_string();
+int reached_EOF_in_quote();
 
 int main(int argc, const char *const *const argv)
 {
@@ -27,6 +29,14 @@ int main(int argc, const char *const *const argv)
     if (!strcmp(sub_name, "too_many_chars"))
     {
         return too_many_chars();
+    }
+    if (!strcmp(sub_name, "literal_string"))
+    {
+        return literal_string();
+    }
+    if (!strcmp(sub_name, "reached_EOF_in_quote"))
+    {
+        return reached_EOF_in_quote();
     }
     puts("invalid test name");
     return -1;
@@ -54,7 +64,7 @@ int a_char()
         puts("can not get pattern");
         return -1;
     }
-    if (strncmp(pattern.pattern_str, "A", pattern.pattern_length))
+    if (strncmp(pattern.pattern_str, "A", pattern.pattern_length) || pattern.pattern_length != 1)
     {
         puts("incorrect pattern");
         return -1;
@@ -102,12 +112,12 @@ int two_chars()
         puts("can not get pattern1");
         return -1;
     }
-    if (strncmp(pattern0.pattern_str, "A", pattern0.pattern_length))
+    if (strncmp(pattern0.pattern_str, "A", pattern0.pattern_length) || pattern0.pattern_length != 1)
     {
         puts("incorrect pattern0");
         return -1;
     }
-    if (strncmp(pattern1.pattern_str, "B", pattern1.pattern_length))
+    if (strncmp(pattern1.pattern_str, "B", pattern1.pattern_length) || pattern1.pattern_length != 1)
     {
         puts("incorrect pattern1");
         return -1;
@@ -145,16 +155,16 @@ int too_many_chars()
         puts("failed to initialize dynamic buffer");
         return -1;
     }
-    Pattern pattern0;
-    if (!dynamic_buffer_get_pattern(&buffer, &pattern0))
+    Pattern pattern;
+    if (!dynamic_buffer_get_pattern(&buffer, &pattern))
     {
-        puts("can not get pattern0");
+        puts("can not get pattern");
         return -1;
     }
-    printf("pattern0: %s", pattern0.pattern_str);
-    if (strncmp(pattern0.pattern_str, TOO_LONG_CHARS, pattern0.pattern_length))
+    printf("%s\n", buffer.buffer);
+    if (strncmp(pattern.pattern_str, TOO_LONG_CHARS, pattern.pattern_length) || pattern.pattern_length != 0x2000)
     {
-        puts("incorrect pattern0");
+        puts("incorrect pattern");
         return -1;
     }
 
@@ -163,7 +173,97 @@ int too_many_chars()
         puts("file must be ended, but has been enable to read");
         return -1;
     }
+    pattern_deinit(&pattern);
+    if (!dynamic_buffer_deinit(&buffer))
+    {
+        puts("failed to deinittialize dynamic buffer");
+        return -1;
+    }
+    return 0;
+}
+
+int literal_string()
+{
+    puts("Start test 'literal_string'");
+    FILE *file = fopen("./literal_string.txt", "r");
+    if (!file)
+    {
+        puts("can not open file");
+        return -1;
+    }
+    DynamicBuffer buffer;
+    // move file owner to buffer
+    if (!dynamic_buffer_init(&buffer, file))
+    {
+        puts("failed to initialize dynamic buffer");
+        return -1;
+    }
+    Pattern pattern0;
+    if (!dynamic_buffer_get_pattern(&buffer, &pattern0))
+    {
+        puts("can not get pattern0");
+        return -1;
+    }
+    Pattern pattern1;
+    if (!dynamic_buffer_get_pattern(&buffer, &pattern1))
+    {
+        puts("can not get pattern1");
+        return -1;
+    }
+    if (strncmp(pattern0.pattern_str, "AA AAA", pattern0.pattern_length) || pattern0.pattern_length != 6)
+    {
+        puts("incorrect pattern0");
+        return -1;
+    }
+    if (strncmp(pattern1.pattern_str, "BBB BB", pattern1.pattern_length) || pattern1.pattern_length != 6)
+    {
+        puts("incorrect pattern1");
+        return -1;
+    }
+
+    if (buffer.is_file_end)
+    {
+        puts("file must be enable to read, but has already ended");
+        return -1;
+    }
+    pattern_deinit(&pattern1);
     pattern_deinit(&pattern0);
+    if (!dynamic_buffer_deinit(&buffer))
+    {
+        puts("failed to deinittialize dynamic buffer");
+        return -1;
+    }
+    return 0;
+}
+
+int reached_EOF_in_quote()
+{
+    puts("Start test 'reached_EOF_in_quote'");
+    FILE *file = fopen("./reached_EOF_in_quote.txt", "r");
+    if (!file)
+    {
+        puts("can not open file");
+        return -1;
+    }
+    DynamicBuffer buffer;
+    // move file owner to buffer
+    if (!dynamic_buffer_init(&buffer, file))
+    {
+        puts("failed to initialize dynamic buffer");
+        return -1;
+    }
+    Pattern pattern;
+    if (dynamic_buffer_get_pattern(&buffer, &pattern))
+    {
+        puts("must not get pattern");
+        return -1;
+    }
+
+    if (!buffer.is_file_end)
+    {
+        puts("file must be ended, but has been enable to read");
+        return -1;
+    }
     if (!dynamic_buffer_deinit(&buffer))
     {
         puts("failed to deinittialize dynamic buffer");

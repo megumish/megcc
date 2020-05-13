@@ -18,7 +18,8 @@ add_executable(test_dynamic_buffer ./tests/test_dynamic_buffer.c ./src/dynamic_b
 
 
 file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/tmp)
-file(GLOB TEST_MATERIALS "./tests/materials/*")
+file(GLOB_RECURSE TEST_MATERIALS "./tests/materials/*")
+file(REMOVE_RECURSE ${PROJECT_BINARY_DIR}/tmp/*)
 file(COPY ${TEST_MATERIALS} DESTINATION ${PROJECT_BINARY_DIR}/tmp)
 
 add_test(
@@ -38,6 +39,20 @@ add_test(
 add_test(
     NAME test_dynamic_buffer-too_many_chars
     COMMAND $<TARGET_FILE:test_dynamic_buffer> too_many_chars
+    CONFIGURATIONS Debug
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/tmp
+)
+
+add_test(
+    NAME test_dynamic_buffer-literal_string
+    COMMAND $<TARGET_FILE:test_dynamic_buffer> literal_string
+    CONFIGURATIONS Debug
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/tmp
+)
+
+add_test(
+    NAME test_dynamic_buffer-reached_EOF_in_quote
+    COMMAND $<TARGET_FILE:test_dynamic_buffer> reached_EOF_in_quote
     CONFIGURATIONS Debug
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/tmp
 )
