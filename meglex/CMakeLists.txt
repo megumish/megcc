@@ -44,15 +44,8 @@ add_test(
 )
 
 add_test(
-    NAME test_dynamic_buffer-literal_string
-    COMMAND $<TARGET_FILE:test_dynamic_buffer> literal_string
-    CONFIGURATIONS Debug
-    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/tmp
-)
-
-add_test(
-    NAME test_dynamic_buffer-reached_EOF_in_quote
-    COMMAND $<TARGET_FILE:test_dynamic_buffer> reached_EOF_in_quote
+    NAME test_dynamic_buffer-marks
+    COMMAND $<TARGET_FILE:test_dynamic_buffer> marks
     CONFIGURATIONS Debug
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/tmp
 )

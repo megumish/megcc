@@ -26,16 +26,15 @@ int dynamic_buffer_init(DynamicBuffer *const dynamic_buffer, FILE *const file)
     return 1;
 }
 
-int dynamic_buffer_copy_pattern(DynamicBuffer *dynamic_buffer, Pattern *pattern, InQuote in_quote)
+int dynamic_buffer_copy_pattern(DynamicBuffer *dynamic_buffer, Pattern *pattern)
 {
-    pattern->in_quote = in_quote;
-    pattern->pattern_str = strndup(dynamic_buffer->buffer + dynamic_buffer->lexeme, dynamic_buffer->forward - dynamic_buffer->lexeme);
+    pattern->pattern_str = strndup(dynamic_buffer->buffer + dynamic_buffer->lexeme, dynamic_buffer->forward - dynamic_buffer->lexeme + 1);
     if (!pattern->pattern_str)
     {
         puts("strdup failed");
         return 0;
     }
-    pattern->pattern_length = dynamic_buffer->forward - dynamic_buffer->lexeme;
+    pattern->pattern_length = dynamic_buffer->forward - dynamic_buffer->lexeme + 1;
     ++dynamic_buffer->forward;
     dynamic_buffer->lexeme = dynamic_buffer->forward;
     return 1;
@@ -45,10 +44,9 @@ int dynamic_buffer_get_pattern(DynamicBuffer *const dynamic_buffer, Pattern *con
 {
     if (dynamic_buffer->is_file_end)
     {
-        puts("file");
+        puts("file is ended");
         return 0;
     }
-    InQuote in_quote = QOut;
     while (1)
     {
         if (dynamic_buffer->forward == dynamic_buffer->buffer_max)
@@ -75,50 +73,24 @@ int dynamic_buffer_get_pattern(DynamicBuffer *const dynamic_buffer, Pattern *con
         if (!dynamic_buffer->buffer[dynamic_buffer->forward])
         {
             dynamic_buffer->is_file_end = 1;
-            if (in_quote != QOut)
-            {
-                puts("reached EOF in quote");
-                return 0;
-            }
-            return dynamic_buffer_copy_pattern(dynamic_buffer, pattern, in_quote);
+            --dynamic_buffer->forward;
+            return dynamic_buffer_copy_pattern(dynamic_buffer, pattern);
         }
 
-        switch (in_quote)
+        if (dynamic_buffer->buffer[dynamic_buffer->forward] == ' ' || dynamic_buffer->buffer[dynamic_buffer->forward] == '\n' || dynamic_buffer->buffer[dynamic_buffer->forward] == '\r' || dynamic_buffer->buffer[dynamic_buffer->forward] == '\t')
         {
-        case QOut:
-            if (dynamic_buffer->buffer[dynamic_buffer->forward] == '\'')
+            if (dynamic_buffer->forward == dynamic_buffer->lexeme)
             {
-                in_quote = QSingleQuote;
+                ++dynamic_buffer->forward;
                 ++dynamic_buffer->lexeme;
+                continue;
             }
-            if (dynamic_buffer->buffer[dynamic_buffer->forward] == '"')
-            {
-                in_quote = QDoubleQuote;
-                ++dynamic_buffer->lexeme;
-            }
-            if (dynamic_buffer->buffer[dynamic_buffer->forward] == ' ' || dynamic_buffer->buffer[dynamic_buffer->forward] == '\n')
-            {
-                if (dynamic_buffer->forward == dynamic_buffer->lexeme)
-                {
-                    ++dynamic_buffer->forward;
-                    ++dynamic_buffer->lexeme;
-                    continue;
-                }
-                return dynamic_buffer_copy_pattern(dynamic_buffer, pattern, in_quote);
-            }
-            break;
-        case QSingleQuote:
-            if (dynamic_buffer->buffer[dynamic_buffer->forward] == '\'')
-            {
-                return dynamic_buffer_copy_pattern(dynamic_buffer, pattern, in_quote);
-            }
-            break;
-        case QDoubleQuote:
-            if (dynamic_buffer->buffer[dynamic_buffer->forward] == '"')
-            {
-                return dynamic_buffer_copy_pattern(dynamic_buffer, pattern, in_quote);
-            }
-            break;
+            --dynamic_buffer->forward;
+            return dynamic_buffer_copy_pattern(dynamic_buffer, pattern);
+        }
+        if (dynamic_buffer->buffer[dynamic_buffer->forward] < '0' || (dynamic_buffer->buffer[dynamic_buffer->forward] > '9' && dynamic_buffer->buffer[dynamic_buffer->forward] < 'A') || (dynamic_buffer->buffer[dynamic_buffer->forward] > 'Z' && dynamic_buffer->buffer[dynamic_buffer->forward] < 'a') || dynamic_buffer->buffer[dynamic_buffer->forward] > 'z')
+        {
+            return dynamic_buffer_copy_pattern(dynamic_buffer, pattern);
         }
         ++dynamic_buffer->forward;
     }
