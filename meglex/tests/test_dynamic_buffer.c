@@ -34,7 +34,44 @@ int main(int argc, const char *const *const argv)
     {
         return marks();
     }
-    puts("invalid test name");
+    puts("parse shite yaruyo...");
+
+    FILE *file = fopen(sub_name, "r");
+    if (!file)
+    {
+        puts("can not open file");
+        return -1;
+    }
+    DynamicBuffer buffer;
+    // move file owner to buffer
+    if (!dynamic_buffer_init(&buffer, file))
+    {
+        puts("failed to initialize dynamic buffer");
+        return -1;
+    }
+    while (!buffer.is_file_end)
+    {
+        Pattern pattern;
+        if (!dynamic_buffer_get_pattern(&buffer, &pattern))
+        {
+            puts("can not get pattern");
+            return -1;
+        }
+        printf("pattern: %s\n", pattern.pattern_str);
+        printf("pattern_length: %zu\n", pattern.pattern_length);
+        pattern_deinit(&pattern);
+    }
+
+    if (!buffer.is_file_end)
+    {
+        puts("file must be ended, but has been enable to read");
+        return -1;
+    }
+    if (!dynamic_buffer_deinit(&buffer))
+    {
+        puts("failed to deinittialize dynamic buffer");
+        return -1;
+    }
     return -1;
 }
 

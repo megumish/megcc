@@ -5,6 +5,7 @@ project(megcc
     LANGUAGES C
 )
 add_subdirectory(./meglex)
+add_subdirectory(./megsym)
 
 include(CTest)
 enable_testing()

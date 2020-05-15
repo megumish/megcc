@@ -61,7 +61,6 @@ int dynamic_buffer_get_pattern(DynamicBuffer *const dynamic_buffer, Pattern *con
             free(dynamic_buffer->buffer);
             dynamic_buffer->buffer = new_buffer;
             size_t last = fread(dynamic_buffer->buffer + dynamic_buffer->forward, sizeof(char), APPEND_BUFFER_SIZE, dynamic_buffer->file);
-            printf("%s\n", dynamic_buffer->buffer);
             if (last < APPEND_BUFFER_SIZE)
             {
                 dynamic_buffer->buffer[last + dynamic_buffer->forward] = 0;
@@ -90,7 +89,15 @@ int dynamic_buffer_get_pattern(DynamicBuffer *const dynamic_buffer, Pattern *con
         }
         if (dynamic_buffer->buffer[dynamic_buffer->forward] < '0' || (dynamic_buffer->buffer[dynamic_buffer->forward] > '9' && dynamic_buffer->buffer[dynamic_buffer->forward] < 'A') || (dynamic_buffer->buffer[dynamic_buffer->forward] > 'Z' && dynamic_buffer->buffer[dynamic_buffer->forward] < 'a') || dynamic_buffer->buffer[dynamic_buffer->forward] > 'z')
         {
-            return dynamic_buffer_copy_pattern(dynamic_buffer, pattern);
+            if (dynamic_buffer->forward == dynamic_buffer->lexeme)
+            {
+                return dynamic_buffer_copy_pattern(dynamic_buffer, pattern);
+            }
+            else
+            {
+                --dynamic_buffer->forward;
+                return dynamic_buffer_copy_pattern(dynamic_buffer, pattern);
+            }
         }
         ++dynamic_buffer->forward;
     }

@@ -17,6 +17,9 @@ target_link_libraries(meglex megsym)
 add_executable(test_dynamic_buffer ./tests/test_dynamic_buffer.c ./src/dynamic_buffer.c ./src/pattern.c)
 
 
+add_executable(test_token_analysis ./tests/test_token_analysis.c ./src/token.c)
+
+
 file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/tmp)
 file(GLOB_RECURSE TEST_MATERIALS "./tests/materials/*")
 file(REMOVE_RECURSE ${PROJECT_BINARY_DIR}/tmp/*)
@@ -46,6 +49,13 @@ add_test(
 add_test(
     NAME test_dynamic_buffer-marks
     COMMAND $<TARGET_FILE:test_dynamic_buffer> marks
+    CONFIGURATIONS Debug
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/tmp
+)
+
+add_test(
+    NAME test_token_analysis-literal_integer
+    COMMAND $<TARGET_FILE:test_token_analysis> literal_integer
     CONFIGURATIONS Debug
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/tmp
 )

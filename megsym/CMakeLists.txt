@@ -7,8 +7,11 @@ project(megsym
 include(CTest)
 enable_testing()
 
-add_library(megsym ./src/megsym.c)
+file(GLOB_RECURSE MEGSYM_SOURCES ./src/*)
+
+add_library(megsym ${MEGSYM_SOURCES})
 target_include_directories(megsym INTERFACE ./include)
+
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
